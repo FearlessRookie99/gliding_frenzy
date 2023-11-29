@@ -17,7 +17,7 @@ class Coin(pygame.sprite.Sprite):
         # Animation
         self.max_frames = 8
         self.akt_frame = random.randint(1, 8)
-        self.anim_rate = 1
+        self.anim_rate = 4
         self.image = self.image_dict["coin"+str(self.akt_frame)]
         self.rect = self.image.get_rect()
         self.rect.x = x
