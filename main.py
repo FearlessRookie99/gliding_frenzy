@@ -103,7 +103,8 @@ pygame.display.set_caption("Prog2")
 
 clock = pygame.time.Clock()
 
-
+# Score-Font erstellen
+score_font = pygame.font.SysFont(None, 36)
 coin_group = pygame.sprite.Group()
 
 # Spieler initialisieren
@@ -149,6 +150,19 @@ while running:
     
     player.player = player.draw(screen)
     
+    # Update
+    player.update()
+    coin_group.update()
+
+    # Check for coin collection
+    coins_collected = player.collect_coins(coin_group)
+
+    # Score rendern und anzeigen
+    score_text = score_font.render(f'Score: {player.score}', True, (255, 255, 255))  # Weißer Text
+    screen.blit(score_text, (10, 10))  # Position in der oberen linken Ecke
+
+
+    # Draw/render
 
     colliding = player.check_colliding(decke,boden)
     pygame.display.flip()

@@ -26,8 +26,19 @@ class Player:
         self.image_dict["jetpack_off"] = pygame.transform.scale(self.image_dict["jetpack_off"], (50, 60))
         self.image_dict["jetpack_on"] = pygame.image.load("franky pngs/jetpack_on.png")
         self.image_dict["jetpack_on"] = pygame.transform.scale(self.image_dict["jetpack_on"], (50, 60))
+        self.hitbox = pygame.Rect(self.x, self.player_y, 40, 80)
+        self.rect = self.hitbox  # Alias hitbox as rect for Pygame compatibility
+        self.score = 0  # Initial score
+
+
+    def update(self):
+        # ... code to update player's position ...
+        self.hitbox.x = self.x
+        self.hitbox.y = self.player_y
+        self.rect = self.hitbox  # Update the rect as well
 
     def draw(self, screen):
+
         hitbox_width = 40
         hitbox_height = 80
         y_faktor = 20
@@ -71,7 +82,7 @@ class Player:
             else:
                 player = pygame.rect.Rect((self.x, self.player_y + y_faktor), (hitbox_width, hitbox_height))
                 screen.blit(self.image_dict["player_5"], (player.x + x_offset, player.y + y_offset))
-        #pygame.draw.rect(screen, 'green', player, 5)
+        pygame.draw.rect(screen, 'green', player, 5)
         
         
         return player
@@ -84,3 +95,8 @@ class Player:
             coll[1] = True
         return coll
         
+    def collect_coins(self, coins_group):
+        collected_coins = pygame.sprite.spritecollide(self, coins_group, True, pygame.sprite.collide_rect)
+        self.score += len(collected_coins)  # Erhöhe den Score für jede gesammelte Münze
+        return len(collected_coins)
+

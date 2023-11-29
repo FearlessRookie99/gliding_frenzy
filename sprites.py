@@ -39,4 +39,3 @@ class Coin(pygame.sprite.Sprite):
 
 
 coin_group = pygame.sprite.Group()
-
