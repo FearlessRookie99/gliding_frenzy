@@ -32,7 +32,7 @@ def move_and_draw_image(image, x, y):
 
 # Endlos Boden und Decke bewegen
 def drawScreen(fugen_liste):
-    global foreground_x, buildings_x, far_buildings_x  , game_speed# Auf die globalen Variablen zugreifen
+    global foreground_x, buildings_x, far_buildings_x  , game_speed # Auf die globalen Variablen zugreifen
     screen.blit(background, (0, 0))  # Hintergrund zeichnen
 
     # Bilder von links nach rechts bewegen und zeichnen

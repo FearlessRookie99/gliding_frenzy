@@ -137,6 +137,7 @@ class Rocket(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()  
 
+# extra anim for rockets 
 class FireAnimation(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -188,7 +189,6 @@ class WarningSign(pygame.sprite.Sprite):
             self.akt_frame += 1
             if self.akt_frame > self.max_frames:
                 self.akt_frame = 1
-                    #self.timer = 0
             self.image = self.image_dict["exclamat"+str(self.akt_frame)]
             self.image = pygame.transform.scale(self.image , (50 , 50)) 
 

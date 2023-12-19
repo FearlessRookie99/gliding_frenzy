@@ -37,7 +37,7 @@ class Menu:
     
     
 
-    
+    # welcome state
     def welcome_menu(self):
         self.screen.fill((0, 0, 0))
         
@@ -56,7 +56,7 @@ class Menu:
         self.draw_text_with_outline("Developed by Taher Garada , Wares Aram , Martin Krawtzow , Al Farouk Ali",(225,self.screen.get_height() / 2 + 260 ),18)
         self.draw_text_with_outline("Mentored by Prof. Dr. Christian Krauss ",(120,self.screen.get_height() / 2 + 280 ),18)
     
-    
+    # player selection menu
     def player_selection(self):
         
         image_size = (140,200)
@@ -98,13 +98,13 @@ class Menu:
         self.draw_text_with_outline("Press number of character to select", (self.screen.get_width() / 2, self.screen.get_height() / 2 + 60), 24)
         self.draw_text_with_outline("Press ESC to go to home screen", (140, 15),25 ) 
     
-    
+    # start state 
     def start_menu(self):
         self.screen.fill((127, 205, 230))
         self.draw_text_with_outline("Press Enter to start", (self.screen.get_width() / 2, self.screen.get_height() / 2),40)
         self.draw_text_with_outline("Press ESC to go to character selection", (170, 15),25 ) 
 
-
+    # pause state/menu 
     def pause_menu(self):
         overlay = pygame.Surface((self.screen.get_width(), self.screen.get_height()), pygame.SRCALPHA)        
         overlay.fill((127, 205, 230, 50))  # The last number (128) is the alpha value
@@ -114,13 +114,14 @@ class Menu:
 
         # Now draw the pause menu text
         self.draw_text_with_outline("Paused - Press Space to continue", (self.screen.get_width() / 2, self.screen.get_height() / 2),40)
-        
+    
+    # End state 
     def end_menu(self):
         self.screen.fill((127, 205, 230))
         self.draw_text_with_outline("Game Over - Press Enter to restart", (self.screen.get_width() / 2, self.screen.get_height() / 2),40)
         self.draw_text_with_outline("Press ESC to go to character selection", (170, 15),24 ) 
     
-
+    # update state 
     def update(self):
         if self.state == 'START':
             self.start_menu()
@@ -133,6 +134,6 @@ class Menu:
         elif self.state == 'WELCOME':
             self.welcome_menu()
 
-
+    # Transfer state title 
     def set_state(self, state):
         self.state = state

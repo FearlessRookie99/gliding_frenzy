@@ -5,48 +5,6 @@ from sprites import *
 from menu import Menu 
 from bg import *
 
-# read current game stats
-file = open('game_stats.txt', 'r')
-load = file.readlines()
-high_score = int(load[0])
-lifetime_score = int(load[1])
-high_coins = int(load[2])
-lifetime_coins = int(load[3])
-file.close()
-
-
-# variables for locking and unlocking characters 
-unlock_zoro= False
-unlock_robin= False
-unlock_sanji= False
-unlock_boa= False
-
-# requirments to unlock characters
-if high_score >= 10000:
-    unlock_zoro = True
-if lifetime_score >= 50000:
-    unlock_robin = True
-if high_coins >= 100:
-    unlock_sanji = True
-if lifetime_coins >= 500:
-    unlock_boa = True
-
-# saving game stats
-def save_stats():
-    global high_score, lifetime_score,high_coins,lifetime_coins
-    if player.score > high_score:
-        high_score = player.score
-    lifetime_score += player.score
-    if player.collected_coins > high_coins:
-        high_coins = player.collected_coins
-    lifetime_coins += player.collected_coins
-    file = open('game_stats.txt', 'w')
-    file.write(str(int(high_score)) + '\n')
-    file.write(str(int(lifetime_score))+ '\n')
-    file.write(str(int(high_coins))+ '\n')
-    file.write(str(int(lifetime_coins))+ '\n')
-    file.close()
-
 # restarts the game 
 def reset_game_state():
     global player,  coin_group, zapper_group, y_velocity, rocket_group,power_up_group,player_factory,player,sprites_group
@@ -70,7 +28,7 @@ pygame.mixer.init()
 pygame.mixer.music.load("parallax-industrial-pack/Industrial Theme Music/industrial.wav")
 jetpack_sound = pygame.mixer.Sound('sounds/jetpacksound.mp3')
 die_sound = pygame.mixer.Sound('sounds/dead.mp3')
-shielddrop_sound = pygame.mixer.Sound('sounds/shielddrop.mp3')
+
 
 
 
@@ -79,13 +37,16 @@ shielddrop_sound = pygame.mixer.Sound('sounds/shielddrop.mp3')
 # adjust diffuclty 
 def adjust_game_speed():
     global game_speed 
-    if game_speed <= 10:
-        game_speed = 4 + (player.score // 500)/50  
+    if game_speed <= 15:
+        game_speed = 4 + (player.score // 500) / 50  
     else:
-        game_speed = 10
+        game_speed = 15
     
-# menu init for game states
+# menu init for game states and game stats
 menu = Menu(screen)  
+game_stats = GameStats()
+game_stats.load_game_stats()
+
 
 # game ending collision
 def handle_collision(player, obstacle_group):
@@ -93,19 +54,19 @@ def handle_collision(player, obstacle_group):
         if player.RectVsRect(player.rect, obstacle.hitbox):
             if isinstance(player.state, ShieldState): # wenn der player ein Schild hat, geht dieses nun kaputt
                 player.state.handle_collision(player)
-                shielddrop_sound.play()
                 
             if not player.is_invincible: # wenn player inv, dann passiert nichts
                 die_sound.play()
                 menu.set_state('END') # player "stirbt"
                 menu.update()
                 current_score()
+                game_stats.save_stats(player.score, player.collected_coins)
                 jetpack_sound.stop()
                 
 
 
 
-
+# text draw
 def draw_text_with_outline(text, position,font_size, fill_color=(255, 255, 255), outline_color=(58, 188, 230)):
     font = pygame.font.SysFont(pygame.font.get_default_font(), font_size)
     text_surface = font.render(text, True, fill_color)
@@ -134,10 +95,10 @@ def draw_text_with_outline(text, position,font_size, fill_color=(255, 255, 255),
 
 # draw game stats in menus 
 def menu_score():
-    draw_text_with_outline(f'highest coins: {round(high_coins)}',(450, 350),36)
-    draw_text_with_outline(f'high_score: {round(high_score)}',(450, 400),36)
-    draw_text_with_outline(f'coins lifetime: {lifetime_coins}',(700, 350),36)
-    draw_text_with_outline(f'score lifetime: {round(lifetime_score)}',(700, 400),36)
+    draw_text_with_outline(f'highest coins: {round(game_stats.high_coins)}',(450, 350),36)
+    draw_text_with_outline(f'high_score: {round(game_stats.high_score)}',(450, 400),36)
+    draw_text_with_outline(f'coins lifetime: {game_stats.lifetime_coins}',(700, 350),36)
+    draw_text_with_outline(f'score lifetime: {round(game_stats.lifetime_score)}',(700, 400),36)
 
 # draw current stats in menus 
 def current_score():
@@ -151,9 +112,9 @@ def run_score():
     draw_text_with_outline(f'score: ',(40, 40),30)
     draw_text_with_outline(f'{round(player.score)}',(100, 40),30)
     draw_text_with_outline(f'high coins:',(60, 60),30)
-    draw_text_with_outline(f'{round(high_coins)}',(145, 60),30)
+    draw_text_with_outline(f'{round(game_stats.high_coins)}',(145, 60),30)
     draw_text_with_outline(f'high score: ',(65, 80),30)
-    draw_text_with_outline(f'{round(high_score)}',(155, 80),30)
+    draw_text_with_outline(f'{round(game_stats.high_score)}',(155, 80),30)
 
 
 
@@ -183,6 +144,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         
+        # welcome menu 
         if menu.state == 'WELCOME':
             menu.update()
             if event.type == pygame.KEYDOWN :
@@ -194,19 +156,20 @@ while running:
         # character selection and drawing black and white images if character is locked
         if menu.state == 'PLAYER_SELECTION':
             menu.update()
-            if not unlock_zoro: 
+            game_stats.load_game_stats()
+            if not game_stats.unlock_zoro: 
                 image_zoro = pygame.image.load("zoro pngs/sprite_b.png")
                 image_zoro = pygame.transform.scale(image_zoro, (140,200))
                 screen.blit(image_zoro, (390,100))
-            if not unlock_robin: 
+            if not game_stats.unlock_robin: 
                 image_robin = pygame.image.load("robin pngs/sprite_b.png")
                 image_robin = pygame.transform.scale(image_robin, (140,200))
                 screen.blit(image_robin, (520,100))
-            if not unlock_sanji: 
+            if not game_stats.unlock_sanji: 
                 image_sanji = pygame.image.load("sanji pngs/sprite_b.png")
                 image_sanji = pygame.transform.scale(image_sanji, (140,200))
                 screen.blit(image_sanji, (650,100))
-            if not unlock_boa: 
+            if not game_stats.unlock_boa: 
                 image_boa = pygame.image.load("boa pngs/sprite_b.png")
                 image_boa = pygame.transform.scale(image_boa, (140,200))
                 screen.blit(image_boa, (780,100))
@@ -221,19 +184,19 @@ while running:
                     player_type = "nami"
                     menu.set_state('START')
                 elif event.key == pygame.K_3:
-                    if unlock_zoro: 
+                    if game_stats.unlock_zoro: 
                         player_type = "zoro"
                         menu.set_state('START')
                 elif event.key == pygame.K_4:
-                    if unlock_robin: 
+                    if game_stats.unlock_robin: 
                         player_type = "robin"
                         menu.set_state('START')
                 elif event.key == pygame.K_5:
-                    if unlock_sanji: 
+                    if game_stats.unlock_sanji: 
                         player_type = "sanji"
                         menu.set_state('START')
                 elif event.key == pygame.K_6:
-                    if unlock_boa: 
+                    if game_stats.unlock_boa: 
                         player_type = "boa"
                         menu.set_state('START')
                 # Create player based on selection
@@ -263,7 +226,7 @@ while running:
                 player.booster = False
                 jetpack_sound.stop()
 
-        
+        # paused game state
         if menu.state == 'PAUSED':
             menu.update()
             player.booster = False 
@@ -272,9 +235,8 @@ while running:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     menu.set_state('RUNNING')
-        
+        # End game state
         if menu.state == 'END':
-            save_stats()
             menu.update()
             current_score()
             if event.type == pygame.KEYDOWN:
@@ -283,9 +245,9 @@ while running:
                     menu.set_state('START')
                 if event.key == pygame.K_ESCAPE:
                     reset_game_state()
-                    menu.set_state('PLAYER_SELECTION')                
+                    menu.set_state('PLAYER_SELECTION')            
 
-    
+    # Running game state
     if menu.state == 'RUNNING' and player :
         # Update game logic
         
@@ -296,20 +258,21 @@ while running:
         player.draw(screen)        
         coin_group.draw(screen)
         zapper_group.draw(screen)
-        
+        warning_group.draw(screen)
+        warning_group.update()
+
         # update rocket and fire animation
         for rocket in rocket_group:
             rocket.update(game_speed)
             rocket.fire_animation.update()
 
-        # blitt rocker and fire animation
+        # blitt rocket and fire animation
         for rocket in rocket_group:
             screen.blit(rocket.fire_animation.image, rocket.fire_animation.rect)
             screen.blit(rocket.image, rocket.rect)
         
         
-        warning_group.draw(screen)
-        warning_group.update()
+
 
         # handle collision for each obstacle type 
         handle_collision(player, zapper_group)
@@ -318,10 +281,10 @@ while running:
         # stats logic 
         coins_collected = player.collect_coins(coin_group)
         player.score += game_speed 
-        if player.score > high_score:
-            high_score = player.score
-        if player.collected_coins > high_coins:
-            high_coins = player.collected_coins
+        if player.score > game_stats.high_score:
+            game_stats.high_score = player.score
+        if player.collected_coins > game_stats.high_coins:
+            game_stats.high_coins = player.collected_coins
         # draw in run stats
         run_score()
         if player.is_invincible:

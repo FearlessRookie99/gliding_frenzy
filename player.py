@@ -12,7 +12,7 @@ class Player(pygame.sprite.Sprite):
         self.x = 120
         self.booster = False
         self.counter = 0
-        self.image = None  # This will be set in subclasses
+        self.image = None  
         self.hitbox_width = 25
         self.hitbox_height = 80
         self.rect = pygame.Rect(self.x  , self.init_y , self.hitbox_width, self.hitbox_height)
@@ -67,6 +67,7 @@ class Player(pygame.sprite.Sprite):
         self.shield_invincibility_duration = FPS  # 1 Sekunde Unverwundbarkeit
         self.state = InvincibilityState(FPS)
         self.is_invincible = True
+    
     def draw(self, screen):
         raise NotImplementedError("This method should be implemented in subclasses")
         
@@ -100,8 +101,8 @@ class Player(pygame.sprite.Sprite):
         coll_coins = pygame.sprite.spritecollide(self, coins_group, True, pygame.sprite.collide_rect)
         if coll_coins:
             collect_coin_sound.play()
-        self.collected_coins += len(coll_coins)
-        return len(coll_coins)
+            self.collected_coins += 1
+        
     # collision detection
     def RectVsRect(self, rect1, rect2):
         return (rect1.x < rect2.x + rect2.width and
@@ -277,6 +278,7 @@ class ShieldState(PlayerState):
     def handle_collision(self, player):
         if player.has_shield: 
             player.has_shield = False
+            pygame.mixer.Sound('sounds/shielddrop.mp3').play
             player.is_invincible = True
             player.invincibility_duration = FPS  # 1 sec inv
             player.state = InvincibilityState(FPS)
@@ -285,3 +287,43 @@ class ShieldState(PlayerState):
 class NormalState(PlayerState):
     def handle_input(self, player):
             pass
+    
+
+class GameStats:
+    def __init__(self):
+        self.high_score = 0
+        self.lifetime_score = 0
+        self.high_coins = 0
+        self.lifetime_coins = 0
+        self.unlock_zoro = False
+        self.unlock_robin = False
+        self.unlock_sanji = False
+        self.unlock_boa = False
+
+    def load_game_stats(self):
+        with open('game_stats.txt', 'r') as file:
+            load = file.readlines()
+            self.high_score = int(load[0])
+            self.lifetime_score = int(load[1])
+            self.high_coins = int(load[2])
+            self.lifetime_coins = int(load[3])
+            self.unlock_zoro = self.high_score >= 10000
+            self.unlock_robin = self.lifetime_score >= 50000
+            self.unlock_sanji = self.high_coins >= 100
+            self.unlock_boa = self.lifetime_coins >= 500
+
+    def save_stats(self, current_score, collected_coins):
+            if current_score > self.high_score:
+                self.high_score = current_score
+            self.lifetime_score += current_score
+
+            if collected_coins > self.high_coins:
+                self.high_coins = collected_coins
+            self.lifetime_coins += collected_coins
+
+            with open('game_stats.txt', 'w') as file:
+                file.write(str(int(self.high_score)) + '\n')
+                file.write(str(int(self.lifetime_score)) + '\n')
+                file.write(str(int(self.high_coins)) + '\n')
+                file.write(str(int(self.lifetime_coins)) + '\n')
+
